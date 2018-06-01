@@ -4,6 +4,7 @@
 
 using System;
 using System.Drawing;
+using Android.Graphics.Drawables;
 using Emotion.GLES;
 using Color = Emotion.Primitives.Color;
 

@@ -77,7 +77,13 @@ namespace Emotion.IO
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleA, (int) All.Alpha);
 
                 // Upload the texture.
-                GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba8, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, FreeImage.GetBits(processedBytes));
+#if DESKTOP
+                GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba, Width, Height, 0, PixelFormat.Red, PixelType.UnsignedByte, FreeImage.GetBits(processedBytes));
+#endif
+
+#if ANDROID
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, FreeImage.GetBits(processedBytes));
+#endif
 
                 Helpers.CheckError("uploading texture");
 

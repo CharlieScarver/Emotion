@@ -12,6 +12,12 @@ using Emotion.GLES;
 using Emotion.Primitives;
 using Soul.Logging;
 
+#if ANDROID
+
+using Android.Util;
+
+#endif
+
 #endregion
 
 namespace Emotion.Debug
@@ -54,15 +60,19 @@ namespace Emotion.Debug
         static Debugger()
         {
 #if DEBUG
-            // Init.
-            SourceFilter = new List<MessageSource>();
-            TypeFilter = new List<MessageType>();
+            // Create logger on desktop.
+#if DESKTOP
             _logger = new ImmediateLoggingService
             {
                 LogLimit = 10,
                 Limit = 2000,
                 Stamp = "Emotion Engine Log"
             };
+#endif
+
+            // Init.
+            SourceFilter = new List<MessageSource>();
+            TypeFilter = new List<MessageType>();
             _mutexLock = new object();
             _command = "";
 
@@ -99,6 +109,7 @@ namespace Emotion.Debug
         /// <param name="source">The source of the message.</param>
         /// <param name="message">The message itself.</param>
         [Conditional("DEBUG")]
+        [Conditional("DESKTOP")]
         public static void Log(MessageType type, MessageSource source, string message)
         {
             // Check against filters.
@@ -107,7 +118,9 @@ namespace Emotion.Debug
             // Prevent logging from multiple threads messing up coloring and logging.
             lock (_mutexLock)
             {
-                // Change the color of the log depending on the type.
+#if DESKTOP
+
+// Change the color of the log depending on the type.
                 switch (type)
                 {
                     case MessageType.Error:
@@ -134,6 +147,20 @@ namespace Emotion.Debug
                 // Restore the normal color.
                 Console.ForegroundColor = ConsoleColor.Gray;
                 Console.BackgroundColor = ConsoleColor.Black;
+
+#endif
+
+#if ANDROID
+                LogPriority priority = LogPriority.Info;
+
+                if (type == MessageType.Info) priority = LogPriority.Info;
+                if (type == MessageType.Error) priority = LogPriority.Error;
+                if (type == MessageType.Trace) priority = LogPriority.Verbose;
+                if (type == MessageType.Warning) priority = LogPriority.Warn;
+
+                Android.Util.Log.WriteLine(priority, source.ToString(), message);
+
+#endif
             }
         }
 

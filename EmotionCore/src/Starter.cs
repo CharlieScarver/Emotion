@@ -3,6 +3,7 @@
 #region Using
 
 using System;
+using System.Diagnostics;
 using Emotion.Engine;
 
 #endregion
@@ -11,6 +12,18 @@ namespace Emotion
 {
     public static class Starter
     {
+        #if ANDROID
+
+        public static Android.Content.Context AndroidContext;
+
+        #endif
+
+        [Conditional("ANDROID")]
+        public static void SetAndroidContext(Android.Content.Context androidContext)
+        {
+            AndroidContext = androidContext;
+        }
+
         /// <summary>
         /// Creates and returns an Emotion context.
         /// </summary>

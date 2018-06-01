@@ -64,7 +64,7 @@ namespace Emotion.Utils
         /// <param name="location">Where the error check is.</param>
         public static void CheckError(string location)
         {
-            ErrorCode errorCheck = GL.GetError();
+            ErrorCode errorCheck = GL.GetErrorCode();
             if (errorCheck != ErrorCode.NoError) throw new Exception("OpenGL error at " + location + ":\n" + errorCheck);
         }
 

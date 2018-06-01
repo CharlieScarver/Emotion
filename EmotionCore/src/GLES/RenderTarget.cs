@@ -55,15 +55,29 @@ namespace Emotion.GLES
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
 
-                GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+#if DESKTOP
+                 GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+#endif
+
+#if ANDROID
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+#endif
+
                 Helpers.CheckError("creating render target texture");
 
                 // Create framebuffer.
-                _bufferPointer = GL.GenFramebuffer();
+                GL.GenFramebuffers(1, out int bufferPointer);
+                _bufferPointer = bufferPointer;
                 UseBuffer();
 
                 // Link the framebuffer and the texture.
+#if DESKTOP
                 GL.FramebufferTexture2D(FramebufferTarget.DrawFramebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, _texturePointer, 0);
+#endif
+#if ANDROID
+                GL.FramebufferTexture2D(FramebufferTarget.DrawFramebuffer, FramebufferSlot.ColorAttachment0, TextureTarget.Texture2D, _texturePointer, 0);
+#endif
+
                 Helpers.CheckError("linking framebuffer to texture");
 
                 // Create and set dbe.
@@ -103,7 +117,9 @@ namespace Emotion.GLES
         public void Cleanup()
         {
             GL.DeleteTexture(_texturePointer);
-            GL.DeleteFramebuffer(_bufferPointer);
+            int buffer = _bufferPointer;
+            _bufferPointer = -1;
+            GL.DeleteFramebuffers(1, ref buffer);
         }
 
         #endregion

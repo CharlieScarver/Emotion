@@ -2,6 +2,8 @@
 
 #region Using
 
+using System;
+using System.Runtime.InteropServices;
 using OpenTK;
 using OpenTK.Graphics.ES30;
 
@@ -32,7 +34,7 @@ namespace Emotion.GLES
         public VBO()
         {
             // Generate a new vertex buffer object.
-            Pointer = GL.GenBuffer();
+            GL.GenBuffers(1, out Pointer);
         }
 
         public void Use()
@@ -42,7 +44,7 @@ namespace Emotion.GLES
 
         public void Destroy()
         {
-            GL.DeleteBuffer(Pointer);
+            GL.DeleteBuffers(1, ref Pointer);
         }
 
         public void StopUsing()
@@ -64,7 +66,18 @@ namespace Emotion.GLES
             UploadedLength = vertices.Length;
 
             // Load the data into the buffer.
+#if DESKTOP
             GL.BufferData(BufferTarget.ArrayBuffer, Vector2.SizeInBytes * vertices.Length, vertices, BufferUsageHint.DynamicDraw);
+
+#endif
+
+#if ANDROID
+            int holder = Vector2.SizeInBytes * vertices.Length;
+            unsafe
+            {
+                GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(((void*)&holder)), vertices, BufferUsage.DynamicDraw);
+            }
+#endif
         }
 
         /// <summary>
@@ -81,7 +94,18 @@ namespace Emotion.GLES
             // Calculate array size.
             int size = Vector3.SizeInBytes * vertices.Length;
             // Load the data into the buffer.
+#if DESKTOP
             GL.BufferData(BufferTarget.ArrayBuffer, size, vertices, BufferUsageHint.DynamicDraw);
+
+#endif
+
+#if ANDROID
+            int holder = size;
+            unsafe
+            {
+                GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(((void*)&holder)), vertices, BufferUsage.DynamicDraw);
+            }
+#endif
         }
 
         /// <summary>
@@ -98,7 +122,18 @@ namespace Emotion.GLES
             // Calculate array size.
             int size = Vector4.SizeInBytes * vertices.Length;
             // Load the data into the buffer.
+#if DESKTOP
             GL.BufferData(BufferTarget.ArrayBuffer, size, vertices, BufferUsageHint.DynamicDraw);
+
+#endif
+
+#if ANDROID
+            int holder = size;
+            unsafe
+            {
+                GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(((void*)&holder)), vertices, BufferUsage.DynamicDraw);
+            }
+#endif
         }
 
         #endregion

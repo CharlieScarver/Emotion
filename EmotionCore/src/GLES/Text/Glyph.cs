@@ -63,7 +63,19 @@ namespace Emotion.GLES.Text
                 HasTexture = true;
                 Width = glyphBitmap.Width;
                 Height = glyphBitmap.Rows;
+                
+                #if DESKTOP
+
                 TextureMatrix = Matrix4.CreateScale(1, -1, 1) * Matrix4.CreateOrthographicOffCenter(0, Width * 2, Height * 2, 0, 0, 1);
+
+                #endif
+
+                #if ANDROID
+
+                Matrix4 scaleMatrix = new Matrix4(new Vector4(1, 0, 0, 0), new Vector4(0, -1, 0, 0), new Vector4(0, 0, 1, 0), new Vector4(0, 0, 0, 1));
+                TextureMatrix = scaleMatrix * Matrix4.CreateOrthographicOffCenter(0, Width * 2, Height * 2, 0, 0, 1);
+
+                #endif
 
                 // Bind the texture.
                 Use();
@@ -79,7 +91,14 @@ namespace Emotion.GLES.Text
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
 
                 // Upload the texture.
+#if DESKTOP
                 GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba, Width, Height, 0, PixelFormat.Red, PixelType.UnsignedByte, source);
+#endif
+
+#if ANDROID
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, source);
+#endif
+
 
                 Helpers.CheckError("uploading glyph texture");
             });

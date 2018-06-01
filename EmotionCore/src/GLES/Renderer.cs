@@ -197,7 +197,12 @@ namespace Emotion.GLES
             }
 
             // Draw.
+            #if DESKTOP
             GL.DrawArrays(primitiveType, 0, vertVBO.UploadedLength);
+    #endif
+            #if ANDROID
+            GL.DrawArrays(BeginMode.TriangleFan, 0, vertVBO.UploadedLength);
+            #endif
         }
 
         /// <summary>

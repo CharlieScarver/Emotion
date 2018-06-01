@@ -21,7 +21,7 @@ namespace Emotion.GLES
         public VAO()
         {
             // Generate a new vertex array object.
-            Pointer = GL.GenVertexArray();
+            GL.GenVertexArrays(1, out Pointer);
         }
 
         public void Use()
@@ -31,7 +31,7 @@ namespace Emotion.GLES
 
         public void Destroy()
         {
-            GL.DeleteVertexArray(Pointer);
+            GL.DeleteVertexArrays(1, ref Pointer);
         }
 
         public void StopUsing()

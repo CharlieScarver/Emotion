@@ -1,4 +1,6 @@
-﻿// Emotion - https://github.com/Cryru/Emotion
+﻿#if DESKTOP
+
+// Emotion - https://github.com/Cryru/Emotion
 
 #region Using
 
@@ -66,3 +68,5 @@ namespace Emotion.GLES
         }
     }
 }
+
+#endif

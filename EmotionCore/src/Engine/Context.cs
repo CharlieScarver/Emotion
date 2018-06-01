@@ -3,16 +3,19 @@
 #region Using
 
 using System;
-using System.IO;
+using System.Diagnostics;
 using System.Threading;
+using Android.Views;
 using Emotion.Debug;
 using Emotion.External;
 using Emotion.Game.Layering;
 using Emotion.GLES;
 using Emotion.IO;
+using Emotion.Mobile;
 using Emotion.Sound;
 using Emotion.Utils;
 using OpenTK;
+using Debugger = Emotion.Debug.Debugger;
 
 #if DEBUG
 
@@ -83,10 +86,23 @@ namespace Emotion.Engine
 
         #region Objects
 
+        #if DESKTOP
+
         /// <summary>
         /// The window the game is opened in.
         /// </summary>
         public Window Window { get; protected set; }
+
+        #endif
+
+        #if ANDROID
+
+        /// <summary>
+        /// The window the game is opened in.
+        /// </summary>
+        public GLView Window { get; protected set; }
+
+        #endif
 
         #endregion
 
@@ -119,7 +135,8 @@ namespace Emotion.Engine
 
             // Start loading modules.
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating window...");
-            Window = new Window(this);
+            LoadDesktop();
+            LoadMobile();
 
             Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating renderer...");
             Renderer = new Renderer(this);
@@ -266,6 +283,22 @@ namespace Emotion.Engine
 
             // Swap buffers.
             Renderer.Present();
+        }
+
+        #endregion
+
+        #region Platform Loading
+
+        [Conditional("DESKTOP")]
+        private void LoadDesktop()
+        {
+            // oops
+        }
+
+        [Conditional("ANDROID")]
+        private void LoadMobile()
+        {
+            Window = new GLView(Starter.AndroidContext, this);
         }
 
         #endregion

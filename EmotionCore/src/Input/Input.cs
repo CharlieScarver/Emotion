@@ -29,10 +29,25 @@ namespace Emotion.Input
 
         internal Input(Context context) : base(context)
         {
+#if DESKTOP
+
             Context.Window.MouseDown += WindowMouseDown;
             Context.Window.MouseUp += WindowMouseUp;
             // Moves an internal mouse position based on the window which is more accurate than directly polling the mouse.
             Context.Window.MouseMove += (sender, e) => { MouseLocation = new Vector2(e.X, e.Y); };
+
+    #endif
+
+            #if ANDROID
+
+            Context.Window.Touch += (sender, e) =>
+            {
+                MouseLocation = new Vector2(e.Event.GetX(), e.Event.GetY());
+                MousePressed[0] = true;
+            };
+
+            #endif
+
             // Sets the unfocused tag.
             Context.Window.FocusedChanged += (sender, e) =>
             {
