@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>EmotionSandbox.Examples.Systems.CornerAnchorExample</StartupObject>
+    <StartupObject>EmotionSandbox.Tests.MappingTest</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Emotion.ico</ApplicationIcon>
@@ -45,6 +45,9 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Soul.Utilities, Version=9.9.1.0, Culture=neutral, processorArchitecture=MSIL">
@@ -63,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="SoundPlayer\SoundPlayerScene.cs" />
+    <Compile Include="Tests\MappingTest.cs" />
     <None Include="Assets\SoundPlayer\RobotoFont.woff2" />
     <None Include="Examples\Input.cs" />
     <Compile Include="Examples\Generic\LoadingScreen.cs" />

@@ -3,7 +3,9 @@
 #region Using
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Emotion.Debug;
 using Emotion.Game.Camera;
 using Emotion.Game.UI;
@@ -15,6 +17,7 @@ using Emotion.Primitives;
 using Emotion.System;
 using Emotion.Utils;
 using OpenTK.Graphics.ES30;
+using Buffer = Emotion.Graphics.GLES.Buffer;
 using Debugger = Emotion.Debug.Debugger;
 
 #endregion
@@ -533,6 +536,176 @@ namespace Emotion.Graphics
             SetModelMatrix();
             renderable.Render(this);
             MatrixStack.Pop();
+        }
+
+        #endregion
+
+        #region Testing
+
+        public void MapVertexAttrib()
+        {
+            GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
+            GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
+
+            GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
+            GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
+
+            GL.EnableVertexAttribArray(ShaderProgram.TidLocation);
+            GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
+
+            GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
+            GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
+        }
+
+        public Buffer CreateBuffer(int bufferSize)
+        {
+            return new Buffer(bufferSize, 3, BufferUsageHint.DynamicDraw);
+        }
+
+        private unsafe VertexData* _dataPointer;
+
+        public unsafe void StartMappingWithMap(Buffer vbo)
+        {
+            vbo.Bind();
+            _dataPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapWriteBit);
+        }
+
+        public unsafe void MapQuad(Vector3 location, Vector2 size, Color col)
+        {
+            // Convert the color to an int.
+            uint c = ((uint) col.A << 24) | ((uint) col.B << 16) | ((uint) col.G << 8) | col.R;
+
+            // Map texture to texture list.
+            int tid = -1;
+
+            // Set four vertices.
+            _dataPointer->Vertex = location;
+            _dataPointer->UV = Vector2.Zero;
+            _dataPointer->Tid = tid;
+            _dataPointer->Color = c;
+            _dataPointer++;
+
+            _dataPointer->Vertex = new Vector3(location.X + size.X, location.Y, location.Z);
+            _dataPointer->UV = Vector2.Zero;
+            _dataPointer->Tid = tid;
+            _dataPointer->Color = c;
+            _dataPointer++;
+
+            _dataPointer->Vertex = new Vector3(location.X + size.X, location.Y + size.Y, location.Z);
+            _dataPointer->UV = Vector2.Zero;
+            _dataPointer->Tid = tid;
+            _dataPointer->Color = c;
+            _dataPointer++;
+
+            _dataPointer->Vertex = new Vector3(location.X, location.Y + size.Y, location.Z);
+            _dataPointer->UV = Vector2.Zero;
+            _dataPointer->Tid = tid;
+            _dataPointer->Color = c;
+            _dataPointer++;
+        }
+
+        public void FlushMap()
+        {
+            GL.UnmapBuffer(BufferTarget.ArrayBuffer);
+        }
+
+        public unsafe void RemapIndex(Buffer buffer, int bufLoc, Color col, Vector3 location, Vector2 size)
+        {
+            StartMappingWithMap(buffer);
+            _dataPointer += bufLoc * 4;
+            MapQuad(location, size, col);
+            FlushMap();
+        }
+
+        public unsafe void RemapIndexExplicit(Buffer buffer, int bufLoc, Color col, Vector3 location, Vector2 size, List<int> startMetric, List<int> flushMetric)
+        {
+            Stopwatch a = new Stopwatch();
+
+            int startIndex = bufLoc * 4;
+            IntPtr offset = (IntPtr)(startIndex);
+            a.Start();
+            buffer.Bind();
+            _dataPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, VertexData.SizeInBytes, BufferAccessMask.MapFlushExplicitBit | BufferAccessMask.MapWriteBit);
+            a.Stop();
+            startMetric.Add((int) a.ElapsedTicks);
+
+            _dataPointer += bufLoc * 4;
+            MapQuad(location, size, col);
+            a.Restart();
+            GL.FlushMappedBufferRange(BufferTarget.ArrayBuffer, offset, 4);
+            a.Stop();
+            flushMetric.Add((int) a.ElapsedTicks);
+            FlushMap();
+        }
+
+        public void RenderMapped(VertexArray vao, IndexBuffer ibo, int indicesCount)
+        {
+            vao.Bind();
+            ibo.Bind();
+            Helpers.CheckError("map buffer - bind");
+
+            GL.DrawElements(PrimitiveType.Triangles, indicesCount, DrawElementsType.UnsignedShort, IntPtr.Zero);
+            Helpers.CheckError("map buffer - draw");
+
+            ibo.Unbind();
+            vao.Unbind();
+        }
+
+        // - Sub Mapping Below -
+
+        public int MapQuad(Vector3 location, Vector2 size, Color col, ref VertexData[] array, int loc)
+        {
+            // Convert the color to an int.
+            uint c = ((uint) col.A << 24) | ((uint) col.B << 16) | ((uint) col.G << 8) | col.R;
+
+            // Map texture to texture list.
+            int tid = -1;
+
+            // Set four vertices.
+            array[loc].Vertex = location;
+            array[loc].UV = Vector2.Zero;
+            array[loc].Tid = tid;
+            array[loc].Color = c;
+            loc++;
+
+            array[loc].Vertex = new Vector3(location.X + size.X, location.Y, location.Z);
+            array[loc].UV = Vector2.Zero;
+            array[loc].Tid = tid;
+            array[loc].Color = c;
+            loc++;
+
+            array[loc].Vertex = new Vector3(location.X + size.X, location.Y + size.Y, location.Z);
+            array[loc].UV = Vector2.Zero;
+            array[loc].Tid = tid;
+            array[loc].Color = c;
+            loc++;
+
+            array[loc].Vertex = new Vector3(location.X, location.Y + size.Y, location.Z);
+            array[loc].UV = Vector2.Zero;
+            array[loc].Tid = tid;
+            array[loc].Color = c;
+            loc++;
+
+            return loc;
+        }
+
+        public unsafe void MapSubBuffer(Buffer buffer, VertexData[] data)
+        {
+            buffer.Bind();
+            GL.BufferSubData<VertexData>(BufferTarget.ArrayBuffer, IntPtr.Zero, data.Length * sizeof(VertexData), data);
+        }
+
+        public unsafe void RemapIndex(Buffer buffer, int bufLoc, Color col, Vector3 location, Vector2 size, bool subMapping)
+        {
+            VertexData[] newQuad = new VertexData[4];
+            MapQuad(location, size, col, ref newQuad, 0);
+
+            int startIndex = bufLoc * 4;
+            IntPtr offset = (IntPtr) (startIndex * sizeof(VertexData));
+
+            buffer.Bind();
+            GL.BufferSubData<VertexData>(BufferTarget.ArrayBuffer, offset, newQuad.Length * sizeof(VertexData), newQuad);
+
         }
 
         #endregion
