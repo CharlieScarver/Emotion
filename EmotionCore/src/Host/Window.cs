@@ -45,7 +45,7 @@ namespace Emotion.Host
         /// <summary>
         /// The minor version of the OpenGL context. Some tools like RenderDoc won't work on versions under 3.3.
         /// </summary>
-        private static int _minorVersion;
+        private static int _minorVersion = 3;
 
         private Action<float> _updateHook;
         private Action<float> _drawHook;
