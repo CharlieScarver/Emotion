@@ -171,7 +171,7 @@ namespace Emotion.Engine
                 Debugger.Log(MessageType.Trace, MessageSource.Engine, "Creating host...");
                 if (CurrentPlatform.OS == PlatformName.Windows || CurrentPlatform.OS == PlatformName.Linux || CurrentPlatform.OS == PlatformName.Mac)
                 {
-                    Host = new Window(Settings);
+                    Host = new GLFWWindow(Settings);
                     Host.SetHooks(LoopUpdate, LoopDraw);
                     Debugger.Log(MessageType.Trace, MessageSource.Engine, "Created window host.");
                 }
