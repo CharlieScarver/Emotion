@@ -7,7 +7,7 @@ using Emotion.Debug;
 using Emotion.Engine;
 using Emotion.Host;
 using Emotion.Primitives;
-using OpenTK.Input;
+using glfw3;
 
 #endregion
 
@@ -21,18 +21,18 @@ namespace Emotion.Input
         internal bool[] MouseHeld = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
         internal bool[] MousePressed = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
         internal bool[] MouseUp = new bool[Enum.GetValues(typeof(MouseKeys)).Length];
-        private KeyboardState _keyboardLast;
-        private KeyboardState _keyboard;
+        //private KeyboardState _keyboardLast;
+        //private KeyboardState _keyboard;
         private bool _noFocus;
         internal Vector2 MouseLocation;
         private float _mouseWheelScroll;
 
         internal InputManager()
         {
-            Context.Host.MouseDown += WindowMouseDown;
-            Context.Host.MouseUp += WindowMouseUp;
+            //Context.Host.MouseDown += WindowMouseDown;
+            //Context.Host.MouseUp += WindowMouseUp;
             // Moves an internal mouse position based on the window which is more accurate than directly polling the mouse.
-            Context.Host.MouseMove += (sender, e) => { MouseLocation = new Vector2(e.X, e.Y); };
+            //Context.Host.MouseMove += (sender, e) => { MouseLocation = new Vector2(e.X, e.Y); };
             // Sets the unfocused tag.
             Context.Host.FocusedChanged += (sender, e) =>
             {
@@ -40,57 +40,57 @@ namespace Emotion.Input
             };
         }
 
-        /// <summary>
-        /// Handles the window mouse down event in order to determine a button has been pressed.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void WindowMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (_noFocus) return;
-            switch (e.Button)
-            {
-                case MouseButton.Left:
-                    MousePressed[0] = true;
-                    break;
-                case MouseButton.Right:
-                    MousePressed[1] = true;
-                    break;
-                case MouseButton.Middle:
-                    MousePressed[2] = true;
-                    break;
-            }
-        }
+        ///// <summary>
+        ///// Handles the window mouse down event in order to determine a button has been pressed.
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //private void WindowMouseDown(object sender, MouseButtonEventArgs e)
+        //{
+        //    if (_noFocus) return;
+        //    switch (e.Button)
+        //    {
+        //        case MouseButton.Left:
+        //            MousePressed[0] = true;
+        //            break;
+        //        case MouseButton.Right:
+        //            MousePressed[1] = true;
+        //            break;
+        //        case MouseButton.Middle:
+        //            MousePressed[2] = true;
+        //            break;
+        //    }
+        //}
 
-        /// <summary>
-        /// Handles the window mouse down event in order to determine a button is no longer held.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void WindowMouseUp(object sender, MouseButtonEventArgs e)
-        {
-            if (_noFocus) return;
-            switch (e.Button)
-            {
-                case MouseButton.Left:
-                    MouseHeld[0] = false;
-                    MouseUp[0] = true;
-                    break;
-                case MouseButton.Right:
-                    MouseHeld[1] = false;
-                    MouseUp[1] = true;
-                    break;
-                case MouseButton.Middle:
-                    MouseHeld[2] = false;
-                    MouseUp[1] = true;
-                    break;
-            }
-        }
+        ///// <summary>
+        ///// Handles the window mouse down event in order to determine a button is no longer held.
+        ///// </summary>
+        ///// <param name="sender"></param>
+        ///// <param name="e"></param>
+        //private void WindowMouseUp(object sender, MouseButtonEventArgs e)
+        //{
+        //    if (_noFocus) return;
+        //    switch (e.Button)
+        //    {
+        //        case MouseButton.Left:
+        //            MouseHeld[0] = false;
+        //            MouseUp[0] = true;
+        //            break;
+        //        case MouseButton.Right:
+        //            MouseHeld[1] = false;
+        //            MouseUp[1] = true;
+        //            break;
+        //        case MouseButton.Middle:
+        //            MouseHeld[2] = false;
+        //            MouseUp[1] = true;
+        //            break;
+        //    }
+        //}
 
         internal void Update()
         {
             // Transfer current to last, and clear current.
-            _keyboardLast = _keyboard;
+            //_keyboardLast = _keyboard;
 
             // Reset mouse states and transfer pressed to held.
             for (int i = 0; i < MousePressed.Length; i++)
@@ -114,33 +114,35 @@ namespace Emotion.Input
             }
 
             // Get current keyboard state.
-            _keyboard = Keyboard.GetState();
+            //_keyboard = Keyboard.GetState();
 
             // Check for fullscreen toggling key combo.
-            if (IsKeyHeld("LAlt") && IsKeyDown("Enter"))
-            {
-                Context.Settings.WindowMode = Context.Settings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
-                Context.Host.ApplySettings(Context.Settings);
-            }
+            //if (IsKeyHeld("LAlt") && IsKeyDown("Enter"))
+            //{
+            //    Context.Settings.WindowMode = Context.Settings.WindowMode == WindowMode.Borderless ? WindowMode.Windowed : WindowMode.Borderless;
+            //    Context.Host.ApplySettings(Context.Settings);
+            //}
 
             // Check for closing combo.
-            if (IsKeyDown("Escape")) Context.Quit();
+            //if (IsKeyDown("Escape")) Context.Quit();
         }
 
         #region Mouse
 
         public float GetMouseScroll()
         {
-            _mouseWheelScroll = Mouse.GetState().WheelPrecise;
-            return _mouseWheelScroll;
+            //_mouseWheelScroll = Mouse.GetState().WheelPrecise;
+            //return _mouseWheelScroll;
+            return 0f;
         }
 
         public float GetMouseScrollRelative()
         {
-            float position = Mouse.GetState().WheelPrecise;
-            float relativePos = _mouseWheelScroll - position;
-            _mouseWheelScroll = position;
-            return relativePos;
+            //float position = Mouse.GetState().WheelPrecise;
+            //float relativePos = _mouseWheelScroll - position;
+            //_mouseWheelScroll = position;
+            //return relativePos;
+            return 0f;
         }
 
         /// <summary>
@@ -197,7 +199,7 @@ namespace Emotion.Input
         /// <returns>Whether the key is being held down.</returns>
         public bool IsKeyHeld(string key)
         {
-            if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyDown(otKey) && _keyboardLast.IsKeyDown(otKey);
+            //if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyDown(otKey) && _keyboardLast.IsKeyDown(otKey);
 #if DEBUG
             Debugger.Log(MessageType.Error, MessageSource.Input, "Couldn't find key: " + key);
 #endif
@@ -211,7 +213,7 @@ namespace Emotion.Input
         /// <returns>Whether the key was pressed down.</returns>
         public bool IsKeyDown(string key)
         {
-            if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyDown(otKey) && !_keyboardLast.IsKeyDown(otKey);
+            //if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyDown(otKey) && !_keyboardLast.IsKeyDown(otKey);
 #if DEBUG
             Debugger.Log(MessageType.Error, MessageSource.Input, "Couldn't find key: " + key);
 #endif
@@ -225,7 +227,7 @@ namespace Emotion.Input
         /// <returns>Whether the key was let go.</returns>
         public bool IsKeyUp(string key)
         {
-            if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyUp(otKey) && !_keyboardLast.IsKeyUp(otKey);
+            //if (Enum.TryParse(key, out Key otKey)) return _keyboard.IsKeyUp(otKey) && !_keyboardLast.IsKeyUp(otKey);
 #if DEBUG
             Debugger.Log(MessageType.Error, MessageSource.Input, "Couldn't find key: " + key);
 #endif
@@ -239,7 +241,8 @@ namespace Emotion.Input
         /// <returns>Whether the key is being held down.</returns>
         public bool IsKeyHeld(short key)
         {
-            return _keyboard.IsKeyDown(key) && _keyboardLast.IsKeyDown(key);
+            //return _keyboard.IsKeyDown(key) && _keyboardLast.IsKeyDown(key);
+            return false;
         }
 
         /// <summary>
@@ -249,7 +252,8 @@ namespace Emotion.Input
         /// <returns>Whether the key was pressed down.</returns>
         public bool IsKeyDown(short key)
         {
-            return _keyboard.IsKeyDown(key) && !_keyboardLast.IsKeyDown(key);
+            //return _keyboard.IsKeyDown(key) && !_keyboardLast.IsKeyDown(key);
+            return false;
         }
 
         /// <summary>
@@ -259,7 +263,8 @@ namespace Emotion.Input
         /// <returns>Whether the key was let go.</returns>
         public bool IsKeyUp(short key)
         {
-            return _keyboard.IsKeyUp(key) && !_keyboardLast.IsKeyUp(key);
+            //return _keyboard.IsKeyUp(key) && !_keyboardLast.IsKeyUp(key);
+            return false;
         }
 
         /// <summary>

@@ -6,7 +6,7 @@ using Emotion.Graphics.GLES;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Utils;
-using OpenTK.Graphics.ES30;
+using OpenGL;
 
 #endregion
 
@@ -46,7 +46,7 @@ namespace Emotion.Graphics.Batching
         }
 
         /// <inheritdoc />
-        public QuadMapBuffer(int size) : base(size, 4, _ibo, 6, PrimitiveType.Triangles)
+        public QuadMapBuffer(uint size) : base(size, 4, _ibo, 6, PrimitiveType.Triangles)
         {
         }
 
@@ -94,7 +94,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="color">The color of the quad.</param>
         /// <param name="texture">The texture of the quad.</param>
         /// <param name="textureArea">The texture area (UV) of the quad.</param>
-        public void MapQuadAt(int index, Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
+        public void MapQuadAt(uint index, Vector3 location, Vector2 size, Color color, Texture texture = null, Rectangle? textureArea = null)
         {
             // Check if mapping has started.
             if (!Mapping) StartMapping();

@@ -2,12 +2,11 @@
 
 #region Using
 
-using System;
 using System.Linq;
 using Emotion.Engine.Threading;
 using Emotion.Primitives;
 using Emotion.Utils;
-using OpenTK.Graphics.ES30;
+using OpenGL;
 
 #endregion
 
@@ -34,22 +33,22 @@ namespace Emotion.Graphics.GLES
         /// <summary>
         /// The location of vertices within the shader.
         /// </summary>
-        public static readonly int VertexLocation = 0;
+        public static readonly uint VertexLocation = 0;
 
         /// <summary>
         /// The location of the texture UV within the shader.
         /// </summary>
-        public static readonly int UvLocation = 1;
+        public static readonly uint UvLocation = 1;
 
         /// <summary>
         /// The location of the texture id within the shader.
         /// </summary>
-        public static readonly int TidLocation = 2;
+        public static readonly uint TidLocation = 2;
 
         /// <summary>
         /// The location of the colors within the shader.
         /// </summary>
-        public static readonly int ColorLocation = 3;
+        public static readonly uint ColorLocation = 3;
 
         #endregion
 
@@ -70,7 +69,7 @@ namespace Emotion.Graphics.GLES
         /// <summary>
         /// The program's unique id.
         /// </summary>
-        private int _pointer;
+        private uint _pointer;
 
         #region Initialization
 
@@ -116,14 +115,14 @@ namespace Emotion.Graphics.GLES
             ShaderProgram current = Current;
 
             // Create the program and attach shaders.
-            _pointer = GL.CreateProgram();
-            GL.AttachShader(_pointer, vert.Pointer);
-            GL.AttachShader(_pointer, frag.Pointer);
+            _pointer = Gl.CreateProgram();
+            Gl.AttachShader(_pointer, vert.Pointer);
+            Gl.AttachShader(_pointer, frag.Pointer);
             Link();
             Bind();
-            GL.DetachShader(_pointer, vert.Pointer);
-            GL.DetachShader(_pointer, frag.Pointer);
-            GL.ValidateProgram(_pointer);
+            Gl.DetachShader(_pointer, vert.Pointer);
+            Gl.DetachShader(_pointer, frag.Pointer);
+            Gl.ValidateProgram(_pointer);
 
             Helpers.CheckError("making program");
 
@@ -141,11 +140,12 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         private void Link()
         {
-            GL.LinkProgram(_pointer);
+            Gl.LinkProgram(_pointer);
 
             // Check link status.
-            string programStatus = GL.GetProgramInfoLog(_pointer);
-            if (programStatus != "") throw new Exception("Failed to link program " + _pointer + " : " + programStatus);
+            // todo
+            //string programStatus = Gl.GetProgramInfoLog(_pointer);
+            //if (programStatus != "") throw new Exception("Failed to link program " + _pointer + " : " + programStatus);
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Bind()
         {
-            GL.UseProgram(_pointer);
+            Gl.UseProgram(_pointer);
             Current = this;
         }
 
@@ -170,7 +170,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Delete()
         {
-            GL.DeleteProgram(_pointer);
+            Gl.DeleteProgram(_pointer);
         }
 
         /// <summary>
@@ -180,7 +180,7 @@ namespace Emotion.Graphics.GLES
         /// <returns>The id of the uniform the name belongs to.</returns>
         public int GetUniformLocation(string name)
         {
-            return GL.GetUniformLocation(_pointer, name);
+            return Gl.GetUniformLocation(_pointer, name);
         }
 
         #region Uniform Upload
@@ -254,7 +254,7 @@ namespace Emotion.Graphics.GLES
             unsafe
             {
                 float* matrixPtr = &matrix4.Row0.X;
-                GL.UniformMatrix4(id, 1, false, matrixPtr);
+                Gl.UniformMatrix4(id, 1, false, matrixPtr);
             }
         }
 
@@ -265,7 +265,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The int value to set it to.</param>
         public static void SetUniformInt(int id, int data)
         {
-            GL.Uniform1(id, data);
+            Gl.Uniform1(id, data);
         }
 
         /// <summary>
@@ -275,7 +275,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The float value to set it to.</param>
         public static void SetUniformFloat(int id, float data)
         {
-            GL.Uniform1(id, data);
+            Gl.Uniform1(id, data);
         }
 
         /// <summary>
@@ -285,7 +285,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The color value to set it to.</param>
         public static void SetUniformColor(int id, Color data)
         {
-            GL.Uniform4(id, data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f);
+            Gl.Uniform4(id, data.R / 255f, data.G / 255f, data.B / 255f, data.A / 255f);
         }
 
         /// <summary>
@@ -295,7 +295,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The int array value to set it to.</param>
         public static void SetUniformIntArray(int id, int[] data)
         {
-            GL.Uniform1(id, data.Length, data);
+            Gl.Uniform1(id, data);
         }
 
         #endregion

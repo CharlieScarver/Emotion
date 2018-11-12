@@ -11,7 +11,7 @@ using Emotion.Graphics.GLES;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Utils;
-using OpenTK.Graphics.ES30;
+using OpenGL;
 using Buffer = Emotion.Graphics.GLES.Buffer;
 
 #endregion
@@ -41,12 +41,12 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// The number of vertices mapped. Also the index of the highest mapped vertex.
         /// </summary>
-        public int MappedVertices { get; private set; }
+        public uint MappedVertices { get; private set; }
 
         /// <summary>
         /// The number of objects mapped.
         /// </summary>
-        public int MappedObjects
+        public uint MappedObjects
         {
             get => MappedVertices / 4;
         }
@@ -54,17 +54,17 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// The size of individual objects which will be mapped in vertices.
         /// </summary>
-        public int ObjectSize { get; private set; }
+        public uint ObjectSize { get; private set; }
 
         /// <summary>
         /// The number of indices per object.
         /// </summary>
-        public int IndicesPerObject { get; private set; }
+        public uint IndicesPerObject { get; private set; }
 
         /// <summary>
         /// The total number of objects that can fit in the buffer.
         /// </summary>
-        public int SizeInObjects
+        public uint SizeInObjects
         {
             get => SizeInVertices / ObjectSize;
         }
@@ -72,9 +72,9 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// The total number of vertices that can fit in the buffer.
         /// </summary>
-        public int SizeInVertices
+        public uint SizeInVertices
         {
-            get => Size / VertexData.SizeInBytes;
+            get => (uint) (Size / VertexData.SizeInBytes);
         }
 
         #endregion
@@ -103,12 +103,12 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// The index to start drawing from.
         /// </summary>
-        private int _startIndex;
+        private uint _startIndex;
 
         /// <summary>
         /// The index to stop drawing at.
         /// </summary>
-        private int _endIndex = -1;
+        private uint _endIndex;
 
         /// <summary>
         /// The point where the data starts.
@@ -137,7 +137,8 @@ namespace Emotion.Graphics.Batching
         /// <param name="ibo">The index buffer to use when drawing.</param>
         /// <param name="indicesPerObject">The number of indices per object.</param>
         /// <param name="drawType">The OpenGL primitive type to draw this buffer with.</param>
-        protected MapBuffer(int size, int objectSize, IndexBuffer ibo, int indicesPerObject, PrimitiveType drawType) : base(size * objectSize * VertexData.SizeInBytes, 3, BufferUsageHint.DynamicDraw)
+        protected MapBuffer(uint size, uint objectSize, IndexBuffer ibo, uint indicesPerObject, PrimitiveType drawType) : base((uint) (size * objectSize * VertexData.SizeInBytes), 3,
+            BufferUsage.DynamicDraw)
         {
             ObjectSize = objectSize;
             _ibo = ibo;
@@ -149,17 +150,17 @@ namespace Emotion.Graphics.Batching
             _vao.Bind();
             base.Bind();
 
-            GL.EnableVertexAttribArray(ShaderProgram.VertexLocation);
-            GL.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
+            Gl.EnableVertexAttribArray(ShaderProgram.VertexLocation);
+            Gl.VertexAttribPointer(ShaderProgram.VertexLocation, 3, VertexAttribType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Vertex"));
 
-            GL.EnableVertexAttribArray(ShaderProgram.UvLocation);
-            GL.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribPointerType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
+            Gl.EnableVertexAttribArray(ShaderProgram.UvLocation);
+            Gl.VertexAttribPointer(ShaderProgram.UvLocation, 2, VertexAttribType.Float, false, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "UV"));
 
-            GL.EnableVertexAttribArray(ShaderProgram.TidLocation);
-            GL.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribPointerType.Float, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
+            Gl.EnableVertexAttribArray(ShaderProgram.TidLocation);
+            Gl.VertexAttribPointer(ShaderProgram.TidLocation, 1, VertexAttribType.Float, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Tid"));
 
-            GL.EnableVertexAttribArray(ShaderProgram.ColorLocation);
-            GL.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribPointerType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
+            Gl.EnableVertexAttribArray(ShaderProgram.ColorLocation);
+            Gl.VertexAttribPointer(ShaderProgram.ColorLocation, 4, VertexAttribType.UnsignedByte, true, VertexData.SizeInBytes, (byte) Marshal.OffsetOf(typeof(VertexData), "Color"));
 
             base.Unbind();
             _vao.Unbind();
@@ -198,7 +199,7 @@ namespace Emotion.Graphics.Batching
 
             Helpers.CheckError("map buffer - before start");
             base.Bind();
-            _startPointer = (VertexData*) GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, Size, BufferAccessMask.MapWriteBit);
+            _startPointer = (VertexData*) Gl.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, Size, (uint) BufferAccessMask.MapWriteBit);
             _dataPointer = _startPointer;
             Helpers.CheckError("map buffer - start");
         }
@@ -227,7 +228,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="color">The color of the vertex.</param>
         /// <param name="texture">The texture of the vertex, if any.</param>
         /// <param name="uv">The uv of the vertex's texture, if any.</param>
-        public void MapVertexAt(int index, Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
+        public void MapVertexAt(uint index, Vector3 vertex, Color color, Texture texture = null, Vector2? uv = null)
         {
             // Check if mapping has started.
             if (!Mapping) StartMapping();
@@ -255,7 +256,7 @@ namespace Emotion.Graphics.Batching
 
             Helpers.CheckError("map buffer - before unmapping");
             base.Bind();
-            GL.UnmapBuffer(BufferTarget.ArrayBuffer);
+            Gl.UnmapBuffer(BufferTarget.ArrayBuffer);
             Helpers.CheckError("map buffer - unmapping");
         }
 
@@ -277,7 +278,7 @@ namespace Emotion.Graphics.Batching
         /// Moves the pointer to the specified vertex index.
         /// </summary>
         /// <param name="index">The index to move the pointer to.</param>
-        protected void MovePointerToVertex(int index)
+        protected void MovePointerToVertex(uint index)
         {
             _dataPointer = _startPointer + index;
         }
@@ -324,7 +325,7 @@ namespace Emotion.Graphics.Batching
 
             currentVertex++;
             // Check if the mapped vertices count needs to be updated.
-            if (currentVertex > MappedVertices) MappedVertices = (int) currentVertex;
+            if (currentVertex > MappedVertices) MappedVertices = (uint) currentVertex;
         }
 
         #endregion
@@ -399,12 +400,12 @@ namespace Emotion.Graphics.Batching
         /// Set the render range for the buffer in objects.
         /// </summary>
         /// <param name="startIndex">The index of the object to start drawing from.</param>
-        /// <param name="endIndex">The index of the object to stop drawing at. If -1 will draw to MappedObjects.</param>
-        public void SetRenderRange(int startIndex = 0, int endIndex = -1)
+        /// <param name="endIndex">The index of the object to stop drawing at. If 0 will draw to MappedObjects.</param>
+        public void SetRenderRange(uint startIndex = 0, uint endIndex = 0)
         {
             if (startIndex != 0) startIndex = startIndex * ObjectSize;
 
-            if (endIndex != -1) endIndex = endIndex * ObjectSize;
+            if (endIndex != 0) endIndex = endIndex * ObjectSize;
 
             SetRenderRangeVertices(startIndex, endIndex);
         }
@@ -413,8 +414,8 @@ namespace Emotion.Graphics.Batching
         /// Set the render range for the buffer in vertices.
         /// </summary>
         /// <param name="startIndex">The index of the vertex to start drawing from.</param>
-        /// <param name="endIndex">The index of the vertex to stop drawing at. If -1 will draw to MappedVertices.</param>
-        public void SetRenderRangeVertices(int startIndex = 0, int endIndex = -1)
+        /// <param name="endIndex">The index of the vertex to stop drawing at. If 0 will draw to MappedVertices.</param>
+        public void SetRenderRangeVertices(uint startIndex = 0, uint endIndex = 0)
         {
             _startIndex = startIndex;
             _endIndex = endIndex;
@@ -463,9 +464,9 @@ namespace Emotion.Graphics.Batching
 
             // Convert offset amd length.
             IntPtr indexToPointer = (IntPtr) (_startIndex * sizeof(ushort));
-            int length = _endIndex == -1 ? MappedObjects * IndicesPerObject : _endIndex / ObjectSize * IndicesPerObject;
+            int length = (int) (_endIndex == 0 ? MappedObjects * IndicesPerObject : _endIndex / ObjectSize * IndicesPerObject); // todo: OpenGL.Net
 
-            GL.DrawElements(_drawType, length, DrawElementsType.UnsignedShort, indexToPointer);
+            Gl.DrawElements(_drawType, length, DrawElementsType.UnsignedShort, indexToPointer);
             Helpers.CheckError("map buffer - draw");
 
             _ibo.Unbind();
@@ -475,37 +476,65 @@ namespace Emotion.Graphics.Batching
 
         #region Buffer API Overwrite
 
+        /// <summary>
+        /// Do not use.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
         public new void Bind()
         {
             throw new InvalidOperationException("You cannot bind a map buffer.");
         }
 
+        /// <summary>
+        /// Do not use.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
         public new void Unbind()
         {
             throw new InvalidOperationException("You cannot unbind a map buffer.");
         }
 
-        public new void Upload(int size, uint componentCount, BufferUsageHint usageHint)
+        /// <summary>
+        /// Do not use.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
+        public new void Upload(uint size, uint componentCount, BufferUsage usageHint)
         {
             throw new InvalidOperationException("Cannot upload to a map buffer directly.");
         }
 
-        public new void Upload(float[] data, uint componentCount, BufferUsageHint usageHint)
+        /// <summary>
+        /// Do not use.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
+        public new void Upload(float[] data, uint componentCount, BufferUsage usageHint)
         {
             throw new InvalidOperationException("Cannot upload to a map buffer directly.");
         }
 
-        public new void Upload(uint[] data, uint componentCount, BufferUsageHint usageHint)
+        /// <summary>
+        /// Do not use.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
+        public new void Upload(uint[] data, uint componentCount, BufferUsage usageHint)
         {
             throw new InvalidOperationException("Cannot upload to a map buffer directly.");
         }
 
-        public new void Upload(Vector3[] data, BufferUsageHint usageHint)
+        /// <summary>
+        /// Do not use.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
+        public new void Upload(Vector3[] data, BufferUsage usageHint)
         {
             throw new InvalidOperationException("Cannot upload to a map buffer directly.");
         }
 
-        public new void Upload(Vector2[] data, BufferUsageHint usageHint)
+        /// <summary>
+        /// Do not use.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
+        public new void Upload(Vector2[] data, BufferUsage usageHint)
         {
             throw new InvalidOperationException("Cannot upload to a map buffer directly.");
         }

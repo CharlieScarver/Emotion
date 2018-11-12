@@ -6,7 +6,7 @@ using Emotion.Graphics.GLES;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Utils;
-using OpenTK.Graphics.ES30;
+using OpenGL;
 
 #endregion
 
@@ -19,7 +19,7 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// The ibo to be used by all QuadMapBuffers.
         /// </summary>
-        private static readonly IndexBuffer _ibo;
+        private static readonly IndexBuffer IBO;
 
         #endregion
 
@@ -42,13 +42,13 @@ namespace Emotion.Graphics.Batching
                 offset += 4;
             }
 
-            _ibo = new IndexBuffer(indices);
+            IBO = new IndexBuffer(indices);
 
             Helpers.CheckError("map buffer - creating ibo");
         }
 
         /// <inheritdoc />
-        public LineMapBuffer(int size) : base(size, 4, _ibo, 8, PrimitiveType.Lines)
+        public LineMapBuffer(uint size) : base(size, 4, IBO, 8, PrimitiveType.Lines)
         {
         }
 
@@ -86,7 +86,7 @@ namespace Emotion.Graphics.Batching
         /// <param name="location">The location of the quad.</param>
         /// <param name="size">The size of the quad.</param>
         /// <param name="color">The color of the quad.</param>
-        public void MapQuadAt(int index, Vector3 location, Vector2 size, Color color)
+        public void MapQuadAt(uint index, Vector3 location, Vector2 size, Color color)
         {
             // Check if mapping has started.
             if (!Mapping) StartMapping();
@@ -125,7 +125,7 @@ namespace Emotion.Graphics.Batching
         /// <summary>
         /// Moves the pointer to the specified quad index and maps the quad.
         /// </summary>
-        public void MapLineAt(int index, Vector3 pointOne, Vector3 pointTwo, Color color)
+        public void MapLineAt(uint index, Vector3 pointOne, Vector3 pointTwo, Color color)
         {
             // Check if mapping has started.
             if (!Mapping) StartMapping();

@@ -4,8 +4,8 @@
 
 using System;
 using Emotion.Primitives;
+using OpenGL;
 using OpenTK.Audio.OpenAL;
-using OpenTK.Graphics.ES30;
 
 #endregion
 
@@ -41,7 +41,7 @@ namespace Emotion.Utils
         /// <param name="location">Where the error check is.</param>
         public static void CheckError(string location)
         {
-            ErrorCode errorCheck = GL.GetError();
+            ErrorCode errorCheck = Gl.GetError();
             if (errorCheck != ErrorCode.NoError) throw new Exception("OpenGL error at " + location + ":\n" + errorCheck);
         }
 

@@ -3,9 +3,11 @@
 #region Using
 
 using System;
+using System.Linq;
+using System.Text;
 using Emotion.Debug;
 using Emotion.Utils;
-using OpenTK.Graphics.ES30;
+using OpenGL;
 
 #endregion
 
@@ -26,7 +28,7 @@ namespace Emotion.Graphics.GLES
         /// <summary>
         /// The shader's internal id.
         /// </summary>
-        public int Pointer { get; private set; }
+        public uint Pointer { get; private set; }
 
         #endregion
 
@@ -54,12 +56,14 @@ namespace Emotion.Graphics.GLES
             }
 
             // Create and compile the shader.
-            Pointer = GL.CreateShader(type);
-            GL.ShaderSource(Pointer, source);
-            GL.CompileShader(Pointer);
+            Pointer = Gl.CreateShader(type);
+            Gl.ShaderSource(Pointer, new[] { source }, new[] { source.Length });
+            Gl.CompileShader(Pointer);
 
             // Check compilation status.
-            string compileStatus = GL.GetShaderInfoLog(Pointer);
+            StringBuilder statusReader = new StringBuilder();
+            Gl.GetShaderInfoLog(Pointer, 2024, out int length, statusReader);
+            string compileStatus = statusReader.ToString();
             if (compileStatus != "") throw new Exception("Failed to compile shader " + Pointer + " : " + compileStatus);
         }
 
@@ -68,7 +72,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Destroy()
         {
-            GL.DeleteShader(Pointer);
+            Gl.DeleteShader(Pointer);
         }
     }
 }

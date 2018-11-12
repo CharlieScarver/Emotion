@@ -16,7 +16,7 @@ using Emotion.Graphics.Text;
 using Emotion.IO;
 using Emotion.Primitives;
 using Emotion.Utils;
-using OpenTK.Graphics.ES30;
+using OpenGL;
 using Soul;
 using Buffer = Emotion.Graphics.GLES.Buffer;
 using Debugger = Emotion.Debug.Debugger;
@@ -31,7 +31,7 @@ namespace Emotion.Graphics
         /// The maximum number of renderable object that can fit in one buffer. This limit is determined by the IBO data type being
         /// ushort.
         /// </summary>
-        public static readonly int MaxRenderable = ushort.MaxValue;
+        public static readonly uint MaxRenderable = ushort.MaxValue;
 
         #region Objects
 
@@ -63,19 +63,24 @@ namespace Emotion.Graphics
 
         #region Initialization
 
+        private VertexArray a;
         internal Renderer()
         {
             // Renderer bootstrap.
             Debugger.Log(MessageType.Info, MessageSource.Renderer, "Loading Emotion OpenTK-GLES Renderer...");
-            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + GL.GetString(StringName.Version) + " on " + GL.GetString(StringName.Renderer));
-            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + GL.GetString(StringName.ShadingLanguageVersion));
+            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GL: " + Gl.GetString(StringName.Version) + " on " + Gl.GetString(StringName.Renderer));
+            Debugger.Log(MessageType.Info, MessageSource.Renderer, "GLSL: " + Gl.GetString(StringName.ShadingLanguageVersion));
+            Helpers.CheckError("renderer start");
 
-            // Set execution flags, used for workarounding different GPU behaviour.
+            // Set execution flags, used for workarounding different GPU behavior.
             SetFlags();
+            Helpers.CheckError("setting up flags");
 
             // Create default shaders. This also sets some shader flags.
             CreateDefaultShaders();
 
+            a = new VertexArray();
+            a.Bind();
             // Create a default program, and use it.
             ShaderProgram defaultProgram = new ShaderProgram((Shader) null, null);
             defaultProgram.Bind();
@@ -92,10 +97,10 @@ namespace Emotion.Graphics
             Helpers.CheckError("renderer setup");
 
             // Setup additional GL arguments.
-            GL.Enable(EnableCap.Blend);
-            GL.DepthFunc(DepthFunction.Lequal);
-            GL.Enable(EnableCap.DepthTest);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            Gl.Enable(EnableCap.Blend);
+            Gl.DepthFunc(DepthFunction.Lequal);
+            Gl.Enable(EnableCap.DepthTest);
+            Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             // Setup debug.
             SetupDebug();
@@ -104,20 +109,12 @@ namespace Emotion.Graphics
         private void SetFlags()
         {
             // Flag missing extensions.
-            int extCount = GL.GetInteger(GetPName.NumExtensions);
-            bool found = false;
-            for (int i = 0; i < extCount; i++)
-            {
-                string extension = GL.GetString(StringNameIndexed.Extensions, i);
-                if (extension.ToLower() != "gl_arb_gpu_shader5") continue;
-                found = true;
-                break;
-            }
+            Gl.Extensions extensions = Gl.CurrentExtensions;
 
-            if (!found)
+            if (!extensions.GpuShader5_ARB)
             {
-                Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found.");
                 Shader5ExtensionMissing = true;
+                Debugger.Log(MessageType.Warning, MessageSource.GL, "The extension GL_ARB_GPU_SHADER5 was not found.");
             }
         }
 
@@ -312,8 +309,9 @@ namespace Emotion.Graphics
             ShaderProgram.Current.Bind();
             Buffer.BoundPointer = 0;
             IndexBuffer.BoundPointer = 0;
+            a.Bind();
 
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             Helpers.CheckError("clear");
 
             // Sync the current shader.

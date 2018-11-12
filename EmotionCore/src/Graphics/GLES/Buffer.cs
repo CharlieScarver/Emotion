@@ -5,7 +5,7 @@
 using System;
 using Emotion.Engine.Threading;
 using Emotion.Primitives;
-using OpenTK.Graphics.ES30;
+using OpenGL;
 
 #endregion
 
@@ -27,7 +27,7 @@ namespace Emotion.Graphics.GLES
         /// <summary>
         /// The size of the buffer in vertices.
         /// </summary>
-        public int Size { get; private set; }
+        public uint Size { get; private set; }
 
         #endregion
 
@@ -36,14 +36,14 @@ namespace Emotion.Graphics.GLES
         /// <summary>
         /// The currently bound buffer.
         /// </summary>
-        public static int BoundPointer { get; internal set; }
+        public static uint BoundPointer { get; internal set; }
 
         #endregion
 
         /// <summary>
         /// The pointer of the buffer within OpenGL.
         /// </summary>
-        protected int _pointer { get; private set; }
+        protected uint _pointer { get; private set; }
 
         /// <summary>
         /// Create a new buffer, and allocate empty space for it.
@@ -51,10 +51,10 @@ namespace Emotion.Graphics.GLES
         /// <param name="size">The size of buffer to allocate.</param>
         /// <param name="componentCount">The number of components contained within the data.</param>
         /// <param name="usageHint">What the buffer will be used for.</param>
-        public Buffer(int size, uint componentCount, BufferUsageHint usageHint = BufferUsageHint.StaticDraw)
+        public Buffer(uint size, uint componentCount, BufferUsage usageHint = BufferUsage.StaticDraw)
         {
             Size = size;
-            _pointer = GL.GenBuffer();
+            _pointer = Gl.GenBuffer();
             Upload(size, componentCount, usageHint);
         }
 
@@ -67,7 +67,7 @@ namespace Emotion.Graphics.GLES
         {
             if (BoundPointer == _pointer) return;
             BoundPointer = _pointer;
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _pointer);
+            Gl.BindBuffer(BufferTarget.ArrayBuffer, _pointer);
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Emotion.Graphics.GLES
         public void Unbind()
         {
             BoundPointer = 0;
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            Gl.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
         /// <summary>
@@ -85,16 +85,16 @@ namespace Emotion.Graphics.GLES
         /// <param name="size">The size to allocate.</param>
         /// <param name="componentCount">The number of components contained within the data.</param>
         /// <param name="usageHint">What the buffer will be used for.</param>
-        public void Upload(int size, uint componentCount, BufferUsageHint usageHint)
+        public void Upload(uint size, uint componentCount, BufferUsage usageHint)
         {
-            if (_pointer == -1) throw new Exception("Cannot allocate in a destroyed buffer.");
+            if (_pointer == 0) throw new Exception("Cannot allocate in a destroyed buffer.");
 
             ComponentCount = componentCount;
 
             GLThread.ExecuteGLThread(() =>
             {
                 Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, size, IntPtr.Zero, usageHint);
+                Gl.BufferData(BufferTarget.ArrayBuffer, size, IntPtr.Zero, usageHint);
             });
         }
 
@@ -104,16 +104,16 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The vertex data for this VBO.</param>
         /// <param name="componentCount">The number of components contained within the data.</param>
         /// <param name="usageHint">What the buffer will be used for.</param>
-        public void Upload(float[] data, uint componentCount, BufferUsageHint usageHint)
+        public void Upload(float[] data, uint componentCount, BufferUsage usageHint)
         {
-            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
+            if (_pointer == 0) throw new Exception("Cannot upload data ot a destroyed buffer.");
 
             ComponentCount = componentCount;
 
             GLThread.ExecuteGLThread(() =>
             {
                 Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float), data, usageHint);
+                Gl.BufferData(BufferTarget.ArrayBuffer, (uint) (data.Length * sizeof(float)), data, usageHint);
             });
         }
 
@@ -123,16 +123,16 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The vertex data for this VBO.</param>
         /// <param name="componentCount">The number of components contained within the data.</param>
         /// <param name="usageHint">What the buffer will be used for.</param>
-        public void Upload(uint[] data, uint componentCount, BufferUsageHint usageHint)
+        public void Upload(uint[] data, uint componentCount, BufferUsage usageHint)
         {
-            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
+            if (_pointer == 0) throw new Exception("Cannot upload data ot a destroyed buffer.");
 
             ComponentCount = componentCount;
 
             GLThread.ExecuteGLThread(() =>
             {
                 Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(uint), data, usageHint);
+                Gl.BufferData(BufferTarget.ArrayBuffer, (uint) (data.Length * sizeof(uint)), data, usageHint);
             });
         }
 
@@ -141,16 +141,16 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         /// <param name="data">The vertex data for this VBO.</param>
         /// <param name="usageHint">What the buffer will be used for.</param>
-        public void Upload(Vector3[] data, BufferUsageHint usageHint)
+        public void Upload(Vector3[] data, BufferUsage usageHint)
         {
-            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
+            if (_pointer == 0) throw new Exception("Cannot upload data ot a destroyed buffer.");
 
             ComponentCount = 3;
 
             GLThread.ExecuteGLThread(() =>
             {
                 Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Vector3.SizeInBytes, data, usageHint);
+                Gl.BufferData(BufferTarget.ArrayBuffer, (uint) (data.Length * Vector3.SizeInBytes), data, usageHint);
             });
         }
 
@@ -159,16 +159,16 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         /// <param name="data">The vertex data for this VBO.</param>
         /// <param name="usageHint">What the buffer will be used for.</param>
-        public void Upload(Vector2[] data, BufferUsageHint usageHint)
+        public void Upload(Vector2[] data, BufferUsage usageHint)
         {
-            if (_pointer == -1) throw new Exception("Cannot upload data ot a destroyed buffer.");
+            if (_pointer == 0) throw new Exception("Cannot upload data ot a destroyed buffer.");
 
             ComponentCount = 2;
 
             GLThread.ExecuteGLThread(() =>
             {
                 Bind();
-                GL.BufferData(BufferTarget.ArrayBuffer, data.Length * Vector2.SizeInBytes, data, usageHint);
+                Gl.BufferData(BufferTarget.ArrayBuffer, (uint) (data.Length * Vector2.SizeInBytes), data, usageHint);
             });
         }
 
@@ -177,8 +177,8 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Delete()
         {
-            GL.DeleteBuffer(_pointer);
-            _pointer = -1;
+            Gl.DeleteBuffers(_pointer);
+            _pointer = 0;
         }
 
         #endregion

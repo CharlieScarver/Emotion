@@ -8,7 +8,7 @@ using Emotion.Graphics.GLES;
 using Emotion.Primitives;
 using Emotion.Utils;
 using FreeImageAPI;
-using OpenTK.Graphics.ES30;
+using OpenGL;
 
 #endregion
 
@@ -31,7 +31,7 @@ namespace Emotion.IO
         /// <summary>
         /// The OpenGL pointer of this texture.
         /// </summary>
-        public int Pointer { get; protected set; }
+        public uint Pointer { get; protected set; }
 
         #endregion
 
@@ -42,7 +42,7 @@ namespace Emotion.IO
         /// </summary>
         public Texture()
         {
-            GLThread.ExecuteGLThread(() => { Pointer = GL.GenTexture(); });
+            GLThread.ExecuteGLThread(() => { Pointer = Gl.GenTexture(); });
             Size = new Vector2();
         }
 
@@ -64,7 +64,7 @@ namespace Emotion.IO
         /// <param name="componentCount">The texture's component count.</param>
         /// <param name="format">The format of the bytes.</param>
         /// <param name="textureMatrix">An additional matrix to multiply the texture matrix by.</param>
-        public Texture(byte[] data, int width, int height, TextureComponentCount componentCount, PixelFormat format, Matrix4? textureMatrix = null)
+        public Texture(byte[] data, int width, int height, InternalFormat componentCount, PixelFormat format, Matrix4? textureMatrix = null)
         {
             Name = "Custom Texture";
             Size = new Vector2(width, height);
@@ -107,8 +107,8 @@ namespace Emotion.IO
         /// <param name="slot">Which slot to bind in. 0-16 (32 on some systems)</param>
         public void Bind(int slot)
         {
-            GL.ActiveTexture(TextureUnit.Texture0 + slot);
-            GL.BindTexture(TextureTarget.Texture2D, Pointer);
+            Gl.ActiveTexture(TextureUnit.Texture0 + slot);
+            Gl.BindTexture(TextureTarget.Texture2d, Pointer);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Emotion.IO
         /// </summary>
         public void Unbind()
         {
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            Gl.BindTexture(TextureTarget.Texture2d, 0);
         }
 
         /// <summary>
@@ -124,8 +124,8 @@ namespace Emotion.IO
         /// </summary>
         public virtual void Delete()
         {
-            GLThread.ExecuteGLThread(() => { GL.DeleteTexture(Pointer); });
-            Pointer = -1;
+            GLThread.ExecuteGLThread(() => { Gl.DeleteTextures(Pointer); });
+            Pointer = 0;
         }
 
         #endregion
@@ -154,24 +154,24 @@ namespace Emotion.IO
             // Upload the texture on the GL thread.
             GLThread.ExecuteGLThread(() =>
             {
-                Pointer = GL.GenTexture();
+                Pointer = Gl.GenTexture();
                 TextureMatrix = Matrix4.CreateOrthographicOffCenter(0, Size.X * 2, Size.Y * 2, 0, 0, 1);
 
                 // Bind the texture.
                 Bind(0);
 
                 // Set scaling to pixel perfect.
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int) All.Nearest);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int) All.Nearest);
 
                 // Create a swizzle mask to convert RGBA to BGRA which for some reason is the format FreeImage spits out above.
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleR, (int) All.Blue);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleG, (int) All.Green);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleB, (int) All.Red);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleA, (int) All.Alpha);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureSwizzleR, (int) All.Blue);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureSwizzleG, (int) All.Green);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureSwizzleB, (int) All.Red);
+                Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureSwizzleA, (int) All.Alpha);
 
                 // Upload the texture.
-                GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba8, (int) Size.X, (int) Size.Y, 0, PixelFormat.Rgba, PixelType.UnsignedByte, FreeImage.GetBits(freeImageBitmap));
+                Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba8, (int) Size.X, (int) Size.Y, 0, PixelFormat.Rgba, PixelType.UnsignedByte, FreeImage.GetBits(freeImageBitmap));
 
                 Helpers.CheckError("uploading texture");
 
@@ -198,19 +198,19 @@ namespace Emotion.IO
         /// <param name="data">The texture data.</param>
         /// <param name="componentCount">The component count.</param>
         /// <param name="format">The texture format.</param>
-        private void CreateFromBytes(byte[] data, TextureComponentCount componentCount, PixelFormat format)
+        private void CreateFromBytes(byte[] data, InternalFormat componentCount, PixelFormat format)
         {
-            Pointer = GL.GenTexture();
+            Pointer = Gl.GenTexture();
 
             // Bind the texture.
             Bind(0);
 
             // Set scaling to pixel perfect.
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int) All.Nearest);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int) All.Nearest);
 
             // Upload the texture.
-            GL.TexImage2D(TextureTarget2d.Texture2D, 0, componentCount, (int) Size.X, (int) Size.Y, 0, format, PixelType.UnsignedByte, data);
+            Gl.TexImage2D(TextureTarget.Texture2d, 0, componentCount, (int) Size.X, (int) Size.Y, 0, format, PixelType.UnsignedByte, data);
 
             Helpers.CheckError("uploading texture");
         }
@@ -221,23 +221,23 @@ namespace Emotion.IO
         /// <param name="data"></param>
         private void CreateForGlyph(byte[] data)
         {
-            Pointer = GL.GenTexture();
+            Pointer = Gl.GenTexture();
 
             // Bind the texture.
             Bind(0);
 
             // Set scaling to pixel perfect.
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (float) All.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (float) All.Nearest);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, (int) All.Nearest);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, (int) All.Nearest);
 
             // Set the red channel to the alpha channel and set all others to 1.
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleR, (int) All.One);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleG, (int) All.One);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleB, (int) All.One);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleA, (int) All.Red);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureSwizzleR, (int) All.One);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureSwizzleG, (int) All.One);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureSwizzleB, (int) All.One);
+            Gl.TexParameter(TextureTarget.Texture2d, TextureParameterName.TextureSwizzleA, (int) All.Red);
 
             // Upload the texture.
-            GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.R8, (int) Size.X, (int) Size.Y, 0, PixelFormat.Red, PixelType.UnsignedByte, data);
+            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.R8, (int) Size.X, (int) Size.Y, 0, PixelFormat.Red, PixelType.UnsignedByte, data);
 
             Helpers.CheckError("uploading texture");
         }

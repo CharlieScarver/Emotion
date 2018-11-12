@@ -28,7 +28,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>bin\Debug-GLES\EmotionCore.xml</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-GLES|AnyCPU' ">
     <OutputPath>bin\Release-GLES\</OutputPath>
@@ -41,6 +42,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DocumentationFile>
     </DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FreeImage-dotnet-core, Version=4.3.6.0, Culture=neutral, processorArchitecture=MSIL">
@@ -56,6 +60,9 @@
     </Reference>
     <Reference Include="OpenGL.Net, Version=0.7.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenGL.Net.0.7.1\lib\net35\OpenGL.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK, Version=3.0.1.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.3.0.1\lib\net20\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="SharpFont, Version=4.0.1.200, Culture=neutral, PublicKeyToken=48add4c483071cdf, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpFont.4.0.1\lib\net45\SharpFont.dll</HintPath>
@@ -132,6 +139,8 @@
     <Compile Include="src\Game\UI\ParentControl.cs" />
     <Compile Include="src\Graphics\Batching\LineMapBuffer.cs" />
     <Compile Include="src\Graphics\Batching\QuadMapBuffer.cs" />
+    <Compile Include="src\Graphics\GLES\All.cs" />
+    <Compile Include="src\Graphics\GLES\BufferAccessMask.cs" />
     <Compile Include="src\Host\GLFWWindow.cs" />
     <Compile Include="src\IO\Texture.cs" />
     <Compile Include="src\Graphics\GLES\IGLObject.cs" />
@@ -210,7 +219,9 @@
     <None Include="Libraries\x64\libglfw3.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="WrapperGLFW.dll.config" />
+    <None Include="WrapperGLFW.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="FreeImage-dotnet-core.dll.config">
@@ -277,7 +288,6 @@
     </Content>
     <Compile Include="src\Primitives\Vector4.cs" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

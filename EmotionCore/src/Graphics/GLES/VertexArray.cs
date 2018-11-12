@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Emotion.Engine.Threading;
-using OpenTK.Graphics.ES30;
+using OpenGL;
 
 #endregion
 
@@ -18,11 +18,11 @@ namespace Emotion.Graphics.GLES
         /// <summary>
         /// The pointer of the vertex array.
         /// </summary>
-        private int _pointer;
+        private uint _pointer;
 
         public VertexArray()
         {
-            _pointer = GL.GenVertexArray();
+            _pointer = Gl.GenVertexArray();
         }
 
         /// <summary>
@@ -38,18 +38,18 @@ namespace Emotion.Graphics.GLES
         /// </param>
         /// <param name="byteType">The type of data within the buffer. Float by default.</param>
         /// <param name="normalized">Whether the value is normalized.</param>
-        public void AttachBuffer(Buffer buffer, int index, int stride = 0, int offset = 0, int componentCount = -1, VertexAttribPointerType byteType = VertexAttribPointerType.Float,
+        public void AttachBuffer(Buffer buffer, uint index, int stride = 0, int offset = 0, int componentCount = -1, VertexAttribType byteType = VertexAttribType.Float,
             bool normalized = false)
         {
-            if (_pointer == -1) throw new Exception("Cannot add a buffer to a destroyed array.");
+            if (_pointer == 0) throw new Exception("Cannot add a buffer to a destroyed array.");
             if (componentCount <= 0) componentCount = (int) buffer.ComponentCount;
 
             GLThread.ExecuteGLThread(() =>
             {
                 Bind();
                 buffer.Bind();
-                GL.EnableVertexAttribArray(index);
-                GL.VertexAttribPointer(index, componentCount, byteType, normalized, stride, offset);
+                Gl.EnableVertexAttribArray(index);
+                Gl.VertexAttribPointer(index, componentCount, byteType, normalized, stride, offset);
                 buffer.Unbind();
                 Unbind();
 
@@ -62,7 +62,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Bind()
         {
-            GL.BindVertexArray(_pointer);
+            Gl.BindVertexArray(_pointer);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Unbind()
         {
-            GL.BindVertexArray(0);
+            Gl.BindVertexArray(0);
         }
 
         /// <summary>
@@ -78,8 +78,8 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Delete()
         {
-            GL.DeleteVertexArray(_pointer);
-            _pointer = -1;
+            Gl.DeleteVertexArrays(_pointer);
+            _pointer = 0;
 
             foreach (Buffer b in _buffers)
             {

@@ -4,7 +4,7 @@
 
 using System;
 using Emotion.Engine.Threading;
-using OpenTK.Graphics.ES30;
+using OpenGL;
 
 #endregion
 
@@ -29,14 +29,14 @@ namespace Emotion.Graphics.GLES
         /// <summary>
         /// The currently bound buffer.
         /// </summary>
-        public static int BoundPointer;
+        public static uint BoundPointer;
 
         #endregion
 
         /// <summary>
         /// The pointer of the buffer within OpenGL.
         /// </summary>
-        private int _pointer;
+        private uint _pointer;
 
         /// <summary>
         /// Create a new buffer.
@@ -44,7 +44,7 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The initial data to upload.</param>
         public IndexBuffer(ushort[] data)
         {
-            _pointer = GL.GenBuffer();
+            _pointer = Gl.GenBuffer();
             Upload(data);
         }
 
@@ -57,7 +57,7 @@ namespace Emotion.Graphics.GLES
         {
             if (BoundPointer == _pointer) return;
             BoundPointer = _pointer;
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _pointer);
+            Gl.BindBuffer(BufferTarget.ElementArrayBuffer, _pointer);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Emotion.Graphics.GLES
         public void Unbind()
         {
             BoundPointer = 0;
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+            Gl.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
         }
 
         /// <summary>
@@ -75,13 +75,13 @@ namespace Emotion.Graphics.GLES
         /// <param name="data">The vertex data for this VBO.</param>
         public void Upload(ushort[] data)
         {
-            if (_pointer == -1) throw new Exception("Cannot upload data to a destroyed buffer.");
+            if (_pointer == 0) throw new Exception("Cannot upload data to a destroyed buffer.");
 
             Count = data.Length;
             GLThread.ExecuteGLThread(() =>
             {
                 Bind();
-                GL.BufferData(BufferTarget.ElementArrayBuffer, data.Length * sizeof(ushort), data, BufferUsageHint.StaticDraw);
+                Gl.BufferData(BufferTarget.ElementArrayBuffer, (uint) (data.Length * sizeof(ushort)), data, BufferUsage.StaticDraw);
                 Unbind();
             });
         }
@@ -91,8 +91,8 @@ namespace Emotion.Graphics.GLES
         /// </summary>
         public void Delete()
         {
-            GL.DeleteBuffer(_pointer);
-            _pointer = -1;
+            Gl.DeleteBuffers(_pointer);
+            _pointer = 0;
         }
 
         #endregion

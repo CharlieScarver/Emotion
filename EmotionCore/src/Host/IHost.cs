@@ -5,7 +5,6 @@
 using System;
 using Emotion.Engine;
 using Emotion.Primitives;
-using OpenTK.Input;
 
 #endregion
 
@@ -24,9 +23,9 @@ namespace Emotion.Host
         void SwapBuffers();
 
         // Events.
-        event EventHandler<MouseButtonEventArgs> MouseDown;
-        event EventHandler<MouseButtonEventArgs> MouseUp;
-        event EventHandler<MouseMoveEventArgs> MouseMove;
+        event EventHandler<EventArgs> MouseDown;
+        event EventHandler<EventArgs> MouseUp;
+        event EventHandler<EventArgs> MouseMove;
         event EventHandler<EventArgs> FocusedChanged;
 
         // Cleanup.
